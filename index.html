@@ -1,14 +1,56 @@
 <html lang="cs">
     <head>
-        <meta charset="utf-8">
-        <title>Rozhraní OSDM | powered by Bileto</title>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>OSDM Sandbox by Bileto</title>
+        <link rel="stylesheet" type="text/css" href="osdm.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300&amp;display=swap" rel="stylesheet">
+        <link href="https://cdn-images.mailchimp.com/embedcode/classic-061523.css" rel="stylesheet" type="text/css">
+        <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
+        <script async src="//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js"></script>
+        <script type="text/javascript">
+            (function ($) { window.fnames = new Array(); window.ftypes = new Array(); fnames[0] = 'EMAIL'; ftypes[0] = 'email'; fnames[1] = 'FNAME'; ftypes[1] = 'text'; fnames[2] = 'LNAME'; ftypes[2] = 'text'; fnames[3] = 'ORG'; ftypes[3] = 'text'; fnames[4] = 'INTEREST'; ftypes[4] = 'text'; }(jQuery)); var $mcj = jQuery.noConflict(true);
+        </script><style type="text/css" id="operaUserStyle"></style>
     </head>
     <body>
-        <h1>Rozhraní OSDM</h1>
-
-        <footer>
-            <p>Web osdm.cz &copy; 2023 BTO software technologies s.r.o. (<a href="https://bileto.com">Bileto</a>)</p>
-            <p>Specifikace <abbr title="Open Sales and Distribution Model" lang="en">OSDM</abbr> &copy 2020 &ndash; 2023 <a href="https://uic.org" title="Union Internationale des Chemins de fer" lang="fr">UIC</a> pod <a href="https://www.apache.org/licenses/LICENSE-2.0">licencí Apache 2.0</a></p>
-        </footer>
+    <header>
+        <img class="page-logo" src="assets/bileto-lettermark-white.svg">
+        <h1>OSDM Sandbox<br><span>powered by Bileto</span></h1>
+    </header>
+    <main class="main-content">
+        <h2>Bileto is proud to announce a public OSDM API Sandbox</h2>
+        <p>Intended for developers and enthusiasts, the API Sandbox comes populated with a representation of real-world reservation data. You can start building and testing immediately.</p>
+        <p><a href="files/OSDM_Sandbox_PR_en.pdf">Full press release</a></p>
+    </main>
+    <section id="signup">
+    <div id="mc_embed_shell">
+    <div id="mc_embed_signup">
+        <form action="https://bileto.us13.list-manage.com/subscribe/post?u=0997186ced8cdc9fb09c4d96a&amp;id=cee2225b73&amp;f_id=00fff9e2f0" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank">
+            <div id="mc_embed_signup_scroll">
+                <h2>Sign up for OSDM Sandbox</h2>
+                <div class="indicates-required"><span class="asterisk">*</span> indicates required</div>
+                <div class="mc-field-group"><label for="mce-EMAIL">Email Address <span class="asterisk">*</span></label><input type="email" name="EMAIL" class="required email" id="mce-EMAIL" required="" value=""><span id="mce-EMAIL-HELPERTEXT" class="helper_text">The address will be used to set up your API access.</span></div>
+                <div class="mc-field-group"><label for="mce-FNAME">First Name </label><input type="text" name="FNAME" class=" text" id="mce-FNAME" value=""></div>
+                <div class="mc-field-group"><label for="mce-LNAME">Last Name </label><input type="text" name="LNAME" class=" text" id="mce-LNAME" value=""></div>
+                <div class="mc-field-group"><label for="mce-ORG">Organization </label><input type="text" name="ORG" class=" text" id="mce-ORG" value=""></div>
+                <div class="mc-field-group"><label for="mce-INTEREST">Your relation to OSDM </label><input type="text" name="INTEREST" class=" text" id="mce-INTEREST" value=""></div>
+                <div id="mce-responses" class="clear">
+                    <div class="response" id="mce-error-response" style="display: none;"></div>
+                    <div class="response" id="mce-success-response" style="display: none;"></div>
+                </div>
+                <div aria-hidden="true" style="position: absolute; left: -5000px;"><input type="text" name="b_0997186ced8cdc9fb09c4d96a_cee2225b73" tabindex="-1" value=""></div>
+                <div class="clear"><input type="submit" name="subscribe" id="mc-embedded-subscribe" class="button" value="Subscribe"></div>
+            </div>
+        </form>
+    </div>
+    </div>
+    </section>
+    <footer>
+        <p>Web osdm.cz &copy; 2023 BTO software technologies s.r.o. (<a href="https://bileto.com">Bileto</a>)</p>
+        <p>Specification <abbr title="Open Sales and Distribution Model" lang="en">OSDM</abbr> &copy 2020 &ndash; 2023 <a href="https://uic.org" title="Union Internationale des Chemins de fer" lang="fr">UIC</a> under <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a></p>
+    </footer>
     </body>
 </html>
