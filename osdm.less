@@ -1,0 +1,71 @@
+//out: osdm.css
+
+@bto-orange: #F1614B;
+@bto-green: #1DBBB2;
+@bto-blue: #118693;
+
+html {
+    font-family: "Source Sans 3", sans-serif;
+    font-weight: 300;
+    background-image: linear-gradient(90deg, #DDD 0%, #DEE 100%);
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0 auto;
+    padding: 5px;
+    width: 960px;
+    max-width: 100vw;
+}
+
+header {
+    display: flex;
+    margin-top: 1em;
+}
+
+.page-logo {
+    width: 4em;
+    height: 4em;
+    padding: 1em;
+    border-radius: 50%;
+    background-image: linear-gradient(45deg, @bto-blue 0%, @bto-green 100%);
+}
+
+a {
+    color: @bto-orange;
+}
+
+p {
+    margin: 0;
+}
+
+h1 {
+    margin: 0.2em 0.5em;
+    color: @bto-blue;
+    span {
+        font-size: 1rem;
+    }
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    //min-height: 50vh;
+    font-size: 1.1rem;
+    a {
+        display: inline-block;
+        padding: 0.2em 1em;
+        margin: 0.5em 0;
+        background-color: @bto-green;
+        color: #FFF;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+}
+
+#mc_embed_signup {
+    background: #fff;
+    margin: 1em 0;
+    padding-top: 5px;
+    width: 600px;
+}
