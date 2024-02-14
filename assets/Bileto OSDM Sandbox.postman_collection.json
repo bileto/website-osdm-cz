@@ -1,0 +1,1894 @@
+{
+	"info": {
+		"_postman_id": "aaee80b5-58b8-4582-90dd-954f1b3ebf0f",
+		"name": "Bileto OSDM Sandbox",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21672",
+		"_collection_link": "https://bileto-team.postman.co/workspace/Bileto~b661e413-5973-4c19-8bb2-9ec2781c922a/collection/21672-aaee80b5-58b8-4582-90dd-954f1b3ebf0f?action=share&source=collection_link&creator=21672"
+	},
+	"item": [
+		{
+			"name": "Trip Specification, Reservation Only",
+			"item": [
+				{
+					"name": "01. Get Offers (R 1062, Pardubice hl.n. - Liberec, reservations only)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"function pad(number) {\r",
+									"    return (number < 10) ? '0' + number : number;\r",
+									"}\r",
+									"\r",
+									"function get_next_weekday (date) {\r",
+									"    var tomorrow = new Date(date.setDate(date.getDate() + 1))\r",
+									"    return tomorrow.getDay() % 6\r",
+									"        ? tomorrow\r",
+									"        : get_next_weekday(tomorrow)\r",
+									"}\r",
+									"\r",
+									"function formatOffset(date=new Date()) {\r",
+									"  var timezoneOffset=date.getTimezoneOffset();\r",
+									"  var sign=(timezoneOffset<0)?\"+\":\"-\";\r",
+									"  var minutes=Math.abs(timezoneOffset);\r",
+									"  var hours=Math.floor(minutes/60);\r",
+									"  minutes=minutes-60*hours;\r",
+									"  return sign+(\"0\"+hours).slice(-2)+\":\"+(\"0\"+minutes).slice(-2);\r",
+									"}\r",
+									"\r",
+									"var nextWeekday = get_next_weekday(new Date());\r",
+									"var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());\r",
+									"var nextWeekdayOffset = formatOffset(nextWeekday);\r",
+									"\r",
+									"var startDateTime = nextWeekdayString + \"T07:05:00\" + nextWeekdayOffset;\r",
+									"var endDateTime =  nextWeekdayString + \"T10:11:00\" + nextWeekdayOffset;\r",
+									"\r",
+									"pm.globals.set(\"trip_external_ref\", uuid.v4());\r",
+									"pm.globals.set(\"trip_leg_1_external_ref\", uuid.v4());\r",
+									"pm.globals.set(\"vehicle_number_leg_1\", 1062);\r",
+									"pm.globals.set(\"leg_1_carrier_ref\", \"urn:uic:rics:3189\");\r",
+									"pm.globals.set(\"leg_1_start_stop_place_ref\", \"urn:uic:stn:5453613\");\r",
+									"pm.globals.set(\"leg_1_end_stop_place_ref\", \"urn:uic:stn:5454212\");\r",
+									"pm.globals.set(\"leg_1_service_departure\", startDateTime);\r",
+									"pm.globals.set(\"leg_1_service_arrival\", endDateTime);\r",
+									"pm.globals.set(\"passenger_specification_1_external_ref\", uuid.v4());\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Successfully received offers', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.globals.unset(\"vehicle_number_leg_1\");",
+									"pm.globals.unset(\"leg_1_carrier_ref\");",
+									"pm.globals.unset(\"leg_1_service_departure\");",
+									"pm.globals.unset(\"leg_1_service_arrival\");",
+									"pm.globals.unset(\"leg_1_start_stop_place_ref\");",
+									"pm.globals.unset(\"leg_1_end_stop_place_ref\");",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test('Got single offer', function () {",
+									"    pm.expect(jsonData.offers).to.have.lengthOf(1);",
+									"});",
+									"",
+									"var offer = jsonData.offers[0];",
+									"",
+									"pm.globals.set(\"offer_id\", offer.offerId);",
+									"",
+									"var reservationOfferPart = offer.reservationOfferParts[0];",
+									"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSpecifications\": [\n        {\n            \"externalRef\": \"{{trip_external_ref}}\",\n            \"legs\": [\n                {\n                    \"externalRef\": \"{{trip_leg_1_external_ref}}\",\n                    \"timedLeg\": {\n                        \"start\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_start_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceDeparture\": {\n                                \"timetabledTime\": \"{{leg_1_service_departure}}\"\n                            }\n                        },\n                        \"end\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_end_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceArrival\": {\n                                \"timetabledTime\": \"{{leg_1_service_arrival}}\"\n                            }\n                        },\n                        \"service\": {\n                            \"vehicleNumbers\": [\n                                \"{{vehicle_number_leg_1}}\"\n                            ],\n                            \"carriers\": [\n                                {\n                                    \"ref\": \"{{leg_1_carrier_ref}}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ]\n        }\n    ],\n    \"anonymousPassengerSpecifications\": [\n        {\n            \"dateOfBirth\": \"1996-01-01\",\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\n            \"type\": \"PERSON\"\n        }\n    ],\n    \"offerSearchCriteria\": {\n        \"currency\": \"CZK\",\n        \"requestedOfferParts\": [\n            \"RESERVATION\"\n        ],\n        \"serviceClassTypes\": [\n            \"STANDARD\"\n        ],\n        \"comfortClasses\": [\n            \"SECOND\"\n        ]\n    },\n    \"requestedFulfillmentOptions\": [\n        {\n            \"type\": \"ETICKET\",\n            \"media\": \"PDF_A4\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/offers",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"offers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02. Get Place Maps for Reservation of Offer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
+									"var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
+									"pm.globals.set(\"preselected_coach\", preSelection.coach);\r",
+									"pm.globals.set(\"preselected_place\", preSelection.place);\r",
+									"pm.globals.set(\"layout_id\", coach.layoutId)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/availabilities/place-map?contextId={{offer_id}}&contextType=OFFER&resourceId={{reservation_id}}&resourceType=RESERVATION",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"availabilities",
+								"place-map"
+							],
+							"query": [
+								{
+									"key": "contextId",
+									"value": "{{offer_id}}"
+								},
+								{
+									"key": "contextType",
+									"value": "OFFER"
+								},
+								{
+									"key": "resourceId",
+									"value": "{{reservation_id}}"
+								},
+								{
+									"key": "resourceType",
+									"value": "RESERVATION"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03. Create a Booking for One-Leg Trip",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
+									"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"pm.globals.set(\"booking_external_ref\", uuid.v4());\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"offers\": [\r\n        {\r\n            \"offerId\": \"{{offer_id}}\",\r\n            \"placeSelections\": [\r\n                {\r\n                    \"reservationId\": \"{{reservation_id}}\",\r\n                    \"places\": [\r\n                        {\r\n                            \"coachNumber\": \"{{preselected_coach}}\",\r\n                            \"placeNumber\": \"{{preselected_place}}\",\r\n                            \"passengerRef\": \"{{passenger_specification_1_external_ref}}\"\r\n                        }\r\n                    ],\r\n                    \"tripLegCoverage\" : {\r\n                        \"tripId\": \"{{trip_id}}\",\r\n                        \"legId\" : \"{{leg_id}}\"\r\n                    }\r\n                }\r\n            ],\r\n            \"passengerRefs\": [\r\n                \"{{passenger_specification_1_external_ref}}\"\r\n            ]\r\n        }\r\n    ],\r\n    \"passengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"type\": \"PERSON\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"{{booking_external_ref}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "04. Obtaining Fulfillments from Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fulfillment for one booking obtained\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var fulfillments = jsonData.fulfillments;\r",
+									"    pm.expect(fulfillments.length).to.eql(1);\r",
+									"\r",
+									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"fulfillments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Fulfillments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fulfillmentUpdates\" : [\r\n        \"{{fulfillment_id}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"fulfillments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete prebooked Booking Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Trip Search Criteria-Vehicle Filter, Reservation Only",
+			"item": [
+				{
+					"name": "01. Get Offers (R 1062, Pardubice hl.n. - Liberec, reservations only)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"function pad(number) {\r",
+									"    return (number < 10) ? '0' + number : number;\r",
+									"}\r",
+									"\r",
+									"function get_next_weekday (date) {\r",
+									"    var tomorrow = new Date(date.setDate(date.getDate() + 1))\r",
+									"    return tomorrow.getDay() % 6\r",
+									"        ? tomorrow\r",
+									"        : get_next_weekday(tomorrow)\r",
+									"}\r",
+									"\r",
+									"var nextWeekday = get_next_weekday(new Date());\r",
+									"var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());\r",
+									"\r",
+									"var startDateTime = nextWeekdayString + \"T07:05:00\";\r",
+									"\r",
+									"pm.globals.set(\"vehicle_number_leg_1\", 1062);\r",
+									"pm.globals.set(\"leg_1_carrier_ref\", \"urn:uic:rics:3189\");\r",
+									"pm.globals.set(\"leg_1_start_stop_place_ref\", \"urn:uic:stn:5453613\");\r",
+									"pm.globals.set(\"leg_1_end_stop_place_ref\", \"urn:uic:stn:5454212\");\r",
+									"pm.globals.set(\"leg_1_service_departure\", startDateTime);\r",
+									"pm.globals.set(\"passenger_specification_1_external_ref\", uuid.v4());\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Successfully received offers', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.globals.unset(\"vehicle_number_leg_1\");",
+									"pm.globals.unset(\"leg_1_carrier_ref\");",
+									"pm.globals.unset(\"leg_1_service_departure\");",
+									"pm.globals.unset(\"leg_1_service_arrival\");",
+									"pm.globals.unset(\"leg_1_start_stop_place_ref\");",
+									"pm.globals.unset(\"leg_1_end_stop_place_ref\");",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test('Got single offer', function () {",
+									"    pm.expect(jsonData.offers).to.have.lengthOf(1);",
+									"});",
+									"",
+									"var offer = jsonData.offers[0];",
+									"",
+									"pm.globals.set(\"offer_id\", offer.offerId);",
+									"",
+									"var reservationOfferPart = offer.reservationOfferParts[0];",
+									"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSearchCriteria\": {\n        \"departureTime\": \"{{leg_1_service_departure}}\",\n        \"origin\": {\n            \"objectType\": \"StopPlaceRef\",\n            \"stopPlaceRef\": \"{{leg_1_start_stop_place_ref}}\"\n        },\n        \"destination\": {\n            \"objectType\": \"StopPlaceRef\",\n            \"stopPlaceRef\": \"{{leg_1_end_stop_place_ref}}\"\n        },\n        \"parameters\": {\n            \"dataFilter\": {\n                \"carrierFilter\" : {\n                    \"carriers\" : [\n                        \"{{leg_1_carrier_ref}}\"\n                    ]\n                },\n                \"vehicleFilter\": {\n                    \"vehicleNumbers\": [\n                        \"{{vehicle_number_leg_1}}\"\n                    ]\n                }\n            }\n        }\n    },\n    \"anonymousPassengerSpecifications\": [\n        {\n            \"dateOfBirth\": \"1996-01-01\",\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\n            \"type\": \"PERSON\"\n        }\n    ],\n    \"offerSearchCriteria\": {\n        \"currency\": \"CZK\",\n        \"requestedOfferParts\": [\n            \"RESERVATION\"\n        ],\n        \"serviceClassTypes\": [\n            \"STANDARD\"\n        ],\n        \"comfortClasses\": [\n            \"SECOND\"\n        ]\n    },\n    \"requestedFulfillmentOptions\": [\n        {\n            \"type\": \"ETICKET\",\n            \"media\": \"PDF_A4\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/offers",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"offers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02. Get Place Maps for Reservation of Offer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"var preSelection = jsonData.vehicleAvailability.preSelections[0];\r",
+									"var coach = jsonData.vehicleAvailability.vehicle.coaches[0];\r",
+									"pm.globals.set(\"preselected_coach\", preSelection.coach);\r",
+									"pm.globals.set(\"preselected_place\", preSelection.place);\r",
+									"pm.globals.set(\"layout_id\", coach.layoutId)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/availabilities/place-map?contextId={{offer_id}}&contextType=OFFER&resourceId={{reservation_id}}&resourceType=RESERVATION",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"availabilities",
+								"place-map"
+							],
+							"query": [
+								{
+									"key": "contextId",
+									"value": "{{offer_id}}"
+								},
+								{
+									"key": "contextType",
+									"value": "OFFER"
+								},
+								{
+									"key": "resourceId",
+									"value": "{{reservation_id}}"
+								},
+								{
+									"key": "resourceType",
+									"value": "RESERVATION"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03. Create a Booking for One-Leg Trip",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
+									"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"pm.globals.set(\"booking_external_ref\", uuid.v4());\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"offers\": [\r\n        {\r\n            \"offerId\": \"{{offer_id}}\",\r\n            \"placeSelections\": [\r\n                {\r\n                    \"reservationId\": \"{{reservation_id}}\",\r\n                    \"places\": [\r\n                        {\r\n                            \"coachNumber\": \"{{preselected_coach}}\",\r\n                            \"placeNumber\": \"{{preselected_place}}\",\r\n                            \"passengerRef\": \"{{passenger_specification_1_external_ref}}\"\r\n                        }\r\n                    ],\r\n                    \"tripLegCoverage\" : {\r\n                        \"tripId\": \"{{trip_id}}\",\r\n                        \"legId\" : \"{{leg_id}}\"\r\n                    }\r\n                }\r\n            ],\r\n            \"passengerRefs\": [\r\n                \"{{passenger_specification_1_external_ref}}\"\r\n            ]\r\n        }\r\n    ],\r\n    \"passengerSpecifications\": [\r\n        {\r\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\r\n            \"dateOfBirth\": \"1996-01-01\",\r\n            \"type\": \"PERSON\"\r\n        }\r\n    ],\r\n    \"externalRef\": \"{{booking_external_ref}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "04. Obtaining Fulfillments from Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fulfillment for one booking obtained\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var fulfillments = jsonData.fulfillments;\r",
+									"    pm.expect(fulfillments.length).to.eql(1);\r",
+									"\r",
+									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"fulfillments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Fulfillments",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fulfillmentUpdates\" : [\r\n        \"{{fulfillment_id}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/fulfillments",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"fulfillments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete prebooked Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Places",
+			"item": [
+				{
+					"name": "Get All Places",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/places",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"places"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Place by Mask",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"place_input_name\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"place_input_name\", \"Brn\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"placeInput\" : {\r\n        \"name\" : \"{{place_input_name}}\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{api_base}}/places",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"places"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Place by ID train",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"place_id\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"place_id\", \"urn:uic:stn:5454212\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/places/{{place_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"places",
+								"{{place_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Place by ID bus",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.globals.unset(\"place_id\");"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"place_id\", \"urn:x_cze:cisjr:2762\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/places/{{place_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"places",
+								"{{place_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Fulfillment Refund",
+			"item": [
+				{
+					"name": "Requesting a Refund Offer Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"pm.globals.set(\"refund_offer_id\", jsonData.refundOffers[0].id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer{{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fulfillmentIds\" : [\r\n        \"{{fulfillment_id}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"refund-offers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm the Refund Offer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Refund Offer was Confirmed\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData.refundOffer.status).to.eql(\"CONFIRMED\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\" : \"CONFIRMED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_offer_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"refund-offers",
+								"{{refund_offer_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Refund Offer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Refund Offer was Confirmed\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData.refundOffer.status).to.eql(\"CONFIRMED\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/refund-offers/{{refund_offer_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"refund-offers",
+								"{{refund_offer_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a Fulfillment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fulfillment for one booking obtained\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var fulfillment = jsonData.fulfillment;\r",
+									"    pm.expect(fulfillment.id).to.eql(pm.globals.get(\"fulfillment_id\"));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let fulfillmentId = pm.globals.get('fulfillment_id');\r",
+									"\r",
+									"if (fulfillmentId == undefined || fulfillmentId == null || fulfillmentId.length == 0) {\r",
+									"    throw new Error(\"Fulfillment ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/fulfillments/{{fulfillment_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"fulfillments",
+								"{{fulfillment_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Purchaser",
+			"item": [
+				{
+					"name": "Get Booking Purchaser Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fulfillment for one booking obtained\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var fulfillments = jsonData.fulfillments;\r",
+									"    pm.expect(fulfillments.length).to.eql(1);\r",
+									"\r",
+									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/purchaser",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"purchaser"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Booking Purchaser Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Fulfillment for one booking obtained\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var fulfillments = jsonData.fulfillments;\r",
+									"    pm.expect(fulfillments.length).to.eql(1);\r",
+									"\r",
+									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"pm.globals.set(\"purchaser_external_ref\", uuid.v4());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Access-Token",
+								"value": "{{access_token}}",
+								"description": "Legacy Authorization Header; remove for 2.0",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"externalRef\" : \"{{purchaser_external_ref}}\",\r\n    \"detail\" : {\r\n        \"preferredLanguage\" : \"cs\",\r\n        \"firstName\" : \"Foo\",\r\n        \"lastName\" : \"Bar\",\r\n        \"email\" : \"foo.bar@example.com\",\r\n        \"phoneNumber\" : \"+1234567890\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/purchaser",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"purchaser"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Passenger",
+			"item": [
+				{
+					"name": "Get Passenger",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									"\r",
+									"let passengerId = pm.globals.get('passenger_id');\r",
+									"\r",
+									"if (passengerId == undefined || passengerId == null || passengerId.length == 0) {\r",
+									"    throw new Error(\"Passenger ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/passengers/{{passenger_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"passengers",
+								"{{passenger_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Passenger",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let bookingId = pm.globals.get('booking_id');\r",
+									"\r",
+									"if (bookingId == undefined || bookingId == null || bookingId.length == 0) {\r",
+									"    throw new Error(\"Booking ID is not set\");\r",
+									"}\r",
+									"\r",
+									"let passengerId = pm.globals.get('passenger_id');\r",
+									"\r",
+									"if (passengerId == undefined || passengerId == null || passengerId.length == 0) {\r",
+									"    throw new Error(\"Passenger ID is not set\");\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\" : \"{{passenger_id}}\",\r\n    \"externalRef\" : \"{{passenger_external_ref_id}}\",\r\n    \"dateOfBirth\" : \"1970-01-01\",\r\n    \"type\" : \"PERSON\",\r\n    \"detail\" : {\r\n        \"preferredLanguage\" : \"cs\",\r\n        \"firstName\" : \"John\",\r\n        \"lastName\" : \"Doe\",\r\n        \"email\" : \"john.doe@example.com\",\r\n        \"phoneNumber\" : \"+1234567890\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings/{{booking_id}}/passengers/{{passenger_id}}",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings",
+								"{{booking_id}}",
+								"passengers",
+								"{{passenger_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Booking Search",
+			"item": [
+				{
+					"name": "Booking Search",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Requestor",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"purchaser\" : {\r\n        \"email\" : \"foo.bar@example.com\"\r\n    },\r\n    \"bookingId\" : \"5abe2904-52b3-4fc0-bb26-340b19eee817\",\r\n    \"retailerBookingRef\" : \"YUBBD7\",\r\n    \"fulfillmentId\" : \"11435ba8-75b5-4b32-b926-a342cf0db4e9\",\r\n    \"fulfillmentControlNumber\" : \"T4AC2W\",\r\n    \"parameters\" : {\r\n        \"numberOfResults\" : 5\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{api_base}}/bookings-search",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"bookings-search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
