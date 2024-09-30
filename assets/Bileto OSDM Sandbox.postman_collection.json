@@ -1877,7 +1877,15 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					""
+					"pm.test(\"Is 'api_base' set\", function () {\r",
+					"    pm.expect(pm.globals.has('api_base')).to.be.true;\r",
+					"    pm.expect(pm.globals.get('api_base')).to.be.string;\r",
+					"});\r",
+					"\r",
+					"pm.test(\"Is 'access_token' set\", function () {\r",
+					"    pm.expect(pm.globals.has('access_token')).to.be.true;\r",
+					"    pm.expect(pm.globals.get('access_token')).to.be.string;\r",
+					"});"
 				]
 			}
 		},
