@@ -57,7 +57,8 @@
 									"pm.globals.set(\"passenger_specification_1_external_ref\", uuid.v4());\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -89,7 +90,8 @@
 									"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -110,16 +112,136 @@
 								"key": "Authorization",
 								"value": "Bearer {{access_token}}",
 								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
-								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSpecifications\": [\n        {\n            \"externalRef\": \"{{trip_external_ref}}\",\n            \"legs\": [\n                {\n                    \"externalRef\": \"{{trip_leg_1_external_ref}}\",\n                    \"timedLeg\": {\n                        \"start\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_start_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceDeparture\": {\n                                \"timetabledTime\": \"{{leg_1_service_departure}}\"\n                            }\n                        },\n                        \"end\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_end_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceArrival\": {\n                                \"timetabledTime\": \"{{leg_1_service_arrival}}\"\n                            }\n                        },\n                        \"service\": {\n                            \"vehicleNumbers\": [\n                                \"{{vehicle_number_leg_1}}\"\n                            ],\n                            \"carriers\": [\n                                {\n                                    \"ref\": \"{{leg_1_carrier_ref}}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ]\n        }\n    ],\n    \"anonymousPassengerSpecifications\": [\n        {\n            \"dateOfBirth\": \"1996-01-01\",\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\n            \"type\": \"PERSON\"\n        }\n    ],\n    \"offerSearchCriteria\": {\n        \"currency\": \"CZK\",\n        \"requestedOfferParts\": [\n            \"RESERVATION\"\n        ],\n        \"serviceClassTypes\": [\n            \"STANDARD\"\n        ],\n        \"comfortClasses\": [\n            \"SECOND\"\n        ]\n    },\n    \"requestedFulfillmentOptions\": [\n        {\n            \"type\": \"ETICKET\",\n            \"media\": \"PDF_A4\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/offers",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"offers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "01. (All requestedOfferParts) Get Offers (R 1062, Pardubice hl.n. - Liberec, reservations only) Copy",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"\r",
+									"function pad(number) {\r",
+									"    return (number < 10) ? '0' + number : number;\r",
+									"}\r",
+									"\r",
+									"function get_next_weekday (date) {\r",
+									"    var tomorrow = new Date(date.setDate(date.getDate() + 1))\r",
+									"    return tomorrow.getDay() % 6\r",
+									"        ? tomorrow\r",
+									"        : get_next_weekday(tomorrow)\r",
+									"}\r",
+									"\r",
+									"function formatOffset(date=new Date()) {\r",
+									"  var timezoneOffset=date.getTimezoneOffset();\r",
+									"  var sign=(timezoneOffset<0)?\"+\":\"-\";\r",
+									"  var minutes=Math.abs(timezoneOffset);\r",
+									"  var hours=Math.floor(minutes/60);\r",
+									"  minutes=minutes-60*hours;\r",
+									"  return sign+(\"0\"+hours).slice(-2)+\":\"+(\"0\"+minutes).slice(-2);\r",
+									"}\r",
+									"\r",
+									"var nextWeekday = get_next_weekday(new Date());\r",
+									"var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());\r",
+									"var nextWeekdayOffset = formatOffset(nextWeekday);\r",
+									"\r",
+									"var startDateTime = nextWeekdayString + \"T07:05:00\" + nextWeekdayOffset;\r",
+									"var endDateTime =  nextWeekdayString + \"T10:11:00\" + nextWeekdayOffset;\r",
+									"\r",
+									"pm.globals.set(\"trip_external_ref\", uuid.v4());\r",
+									"pm.globals.set(\"trip_leg_1_external_ref\", uuid.v4());\r",
+									"pm.globals.set(\"vehicle_number_leg_1\", 1062);\r",
+									"pm.globals.set(\"leg_1_carrier_ref\", \"urn:uic:rics:3189\");\r",
+									"pm.globals.set(\"leg_1_start_stop_place_ref\", \"urn:uic:stn:5453613\");\r",
+									"pm.globals.set(\"leg_1_end_stop_place_ref\", \"urn:uic:stn:5454212\");\r",
+									"pm.globals.set(\"leg_1_service_departure\", startDateTime);\r",
+									"pm.globals.set(\"leg_1_service_arrival\", endDateTime);\r",
+									"pm.globals.set(\"passenger_specification_1_external_ref\", uuid.v4());\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Successfully received offers', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.globals.unset(\"vehicle_number_leg_1\");",
+									"pm.globals.unset(\"leg_1_carrier_ref\");",
+									"pm.globals.unset(\"leg_1_service_departure\");",
+									"pm.globals.unset(\"leg_1_service_arrival\");",
+									"pm.globals.unset(\"leg_1_start_stop_place_ref\");",
+									"pm.globals.unset(\"leg_1_end_stop_place_ref\");",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"pm.test('Got single offer', function () {",
+									"    pm.expect(jsonData.offers).to.have.lengthOf(1);",
+									"});",
+									"",
+									"var offer = jsonData.offers[0];",
+									"",
+									"pm.globals.set(\"offer_id\", offer.offerId);",
+									"",
+									"var reservationOfferPart = offer.reservationOfferParts[0];",
+									"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"objectType\": \"OfferCollectionRequest\",\n    \"tripSpecifications\": [\n        {\n            \"externalRef\": \"{{trip_external_ref}}\",\n            \"legs\": [\n                {\n                    \"externalRef\": \"{{trip_leg_1_external_ref}}\",\n                    \"timedLeg\": {\n                        \"start\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_start_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceDeparture\": {\n                                \"timetabledTime\": \"{{leg_1_service_departure}}\"\n                            }\n                        },\n                        \"end\": {\n                            \"stopPlaceRef\": {\n                                \"stopPlaceRef\": \"{{leg_1_end_stop_place_ref}}\",\n                                \"objectType\": \"StopPlaceRef\"\n                            },\n                            \"serviceArrival\": {\n                                \"timetabledTime\": \"{{leg_1_service_arrival}}\"\n                            }\n                        },\n                        \"service\": {\n                            \"vehicleNumbers\": [\n                                \"{{vehicle_number_leg_1}}\"\n                            ],\n                            \"carriers\": [\n                                {\n                                    \"ref\": \"{{leg_1_carrier_ref}}\"\n                                }\n                            ]\n                        }\n                    }\n                }\n            ]\n        }\n    ],\n    \"anonymousPassengerSpecifications\": [\n        {\n            \"dateOfBirth\": \"1996-01-01\",\n            \"externalRef\": \"{{passenger_specification_1_external_ref}}\",\n            \"type\": \"PERSON\"\n        }\n    ],\n    \"offerSearchCriteria\": {\n        \"currency\": \"CZK\",\n        \"requestedOfferParts\": [\n            \"ALL\"\n        ],\n        \"serviceClassTypes\": [\n            \"STANDARD\"\n        ],\n        \"comfortClasses\": [\n            \"SECOND\"\n        ]\n    },\n    \"requestedFulfillmentOptions\": [\n        {\n            \"type\": \"ETICKET\",\n            \"media\": \"PDF_A4\"\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -152,7 +274,8 @@
 									"pm.globals.set(\"preselected_place\", preSelection.place);\r",
 									"pm.globals.set(\"layout_id\", coach.layoutId)"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -167,17 +290,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -224,7 +336,8 @@
 									"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
 									"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -236,7 +349,8 @@
 									"pm.globals.set(\"booking_external_ref\", uuid.v4());\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -256,18 +370,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text",
-								"disabled": true
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -420,7 +522,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -434,7 +537,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -449,11 +553,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -479,7 +578,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -493,7 +593,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -508,11 +609,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -567,7 +663,8 @@
 									"pm.globals.set(\"passenger_specification_1_external_ref\", uuid.v4());\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -599,7 +696,8 @@
 									"pm.globals.set(\"reservation_id\", reservationOfferPart.id);",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -619,11 +717,6 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer {{access_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -662,7 +755,8 @@
 									"pm.globals.set(\"preselected_place\", preSelection.place);\r",
 									"pm.globals.set(\"layout_id\", coach.layoutId)"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -677,17 +771,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -734,7 +817,8 @@
 									"pm.globals.set(\"booking_id\", jsonData.booking.id);\r",
 									"pm.globals.set(\"passenger_id\", jsonData.booking.passengers[0].id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -746,7 +830,8 @@
 									"pm.globals.set(\"booking_external_ref\", uuid.v4());\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -766,18 +851,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text",
-								"disabled": true
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -817,7 +890,8 @@
 									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -832,17 +906,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -869,7 +932,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -884,17 +948,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -930,7 +983,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -944,7 +998,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -959,11 +1014,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -989,7 +1039,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1003,7 +1054,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1018,11 +1070,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1053,7 +1100,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1076,11 +1124,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1114,7 +1157,8 @@
 								"exec": [
 									"pm.globals.unset(\"place_input_name\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1123,7 +1167,8 @@
 								"exec": [
 									"pm.globals.set(\"place_input_name\", \"Brn\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1143,11 +1188,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1176,7 +1216,8 @@
 								"exec": [
 									"pm.globals.unset(\"place_id\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1185,7 +1226,8 @@
 								"exec": [
 									"pm.globals.set(\"place_id\", \"urn:uic:stn:5454212\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1205,11 +1247,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1235,7 +1272,8 @@
 								"exec": [
 									"pm.globals.unset(\"place_id\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1244,7 +1282,8 @@
 								"exec": [
 									"pm.globals.set(\"place_id\", \"urn:x_cze:cisjr:2762\");"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1264,11 +1303,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1300,7 +1334,8 @@
 									"var jsonData = JSON.parse(responseBody);\r",
 									"pm.globals.set(\"refund_offer_id\", jsonData.refundOffers[0].id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1320,11 +1355,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1364,7 +1394,8 @@
 									"    pm.expect(jsonData.refundOffer.status).to.eql(\"CONFIRMED\");\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1384,17 +1415,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1435,7 +1455,8 @@
 									"    pm.expect(jsonData.refundOffer.status).to.eql(\"CONFIRMED\");\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1445,11 +1466,6 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer {{access_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1481,7 +1497,8 @@
 									"    pm.expect(fulfillment.id).to.eql(pm.globals.get(\"fulfillment_id\"));\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1495,7 +1512,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1510,11 +1528,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1551,7 +1564,8 @@
 									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1566,17 +1580,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1609,7 +1612,8 @@
 									"    pm.globals.set(\"fulfillment_id\", jsonData.fulfillments[0].id);\r",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1620,7 +1624,8 @@
 									"\r",
 									"pm.globals.set(\"purchaser_external_ref\", uuid.v4());"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1635,17 +1640,6 @@
 							{
 								"key": "Accept",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Access-Token",
-								"value": "{{access_token}}",
-								"description": "Legacy Authorization Header; remove for 2.0",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1686,7 +1680,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1706,7 +1701,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1721,11 +1717,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1753,7 +1744,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -1773,7 +1765,8 @@
 									"}\r",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1788,11 +1781,6 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
 								"type": "text"
 							}
 						],
@@ -1829,7 +1817,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1845,11 +1834,6 @@
 								"key": "Content-Type",
 								"value": "application/json",
 								"type": "text"
-							},
-							{
-								"key": "Requestor",
-								"value": "",
-								"type": "text"
 							}
 						],
 						"body": {
@@ -1863,6 +1847,89 @@
 							],
 							"path": [
 								"bookings-search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Trip Search Criteria (Journey Planning)",
+			"item": [
+				{
+					"name": "Trips Praha - Kořenov",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Trips Zlín - Wien Flughafen",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"departureTime\" : \"{{next_weekday}}T00:00:00\",\r\n    \"origin\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:x_cze:cisjr:41994\"\r\n    },\r\n    \"destination\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:x_cze:cisjr:41103\"\r\n    },\r\n    \"embed\" : [\"TRIPS\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/trips-collection",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"trips-collection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Volary - České Budějovice",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"departureTime\" : \"{{next_weekday}}T00:00:00\",\r\n    \"origin\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:x_cze:cisjr:40034\"\r\n    },\r\n    \"destination\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:uic:stn:5473282\"\r\n    },\r\n    \"embed\" : [\"TRIPS\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/trips-collection",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"trips-collection"
 							]
 						}
 					},
