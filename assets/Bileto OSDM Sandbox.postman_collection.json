@@ -1861,7 +1861,31 @@
 					"name": "Trips Praha - Kořenov",
 					"request": {
 						"method": "POST",
-						"header": []
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"departureTime\" : \"{{next_weekday}}T00:00:00\",\r\n    \"origin\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:uic:stn:5457076\"\r\n    },\r\n    \"destination\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:uic:stn:5454912\"\r\n    },\r\n    \"embed\" : [\"TRIPS\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_base}}/trips-collection",
+							"host": [
+								"{{api_base}}"
+							],
+							"path": [
+								"trips-collection"
+							]
+						}
 					},
 					"response": []
 				},
@@ -1916,7 +1940,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"departureTime\" : \"{{next_weekday}}T00:00:00\",\r\n    \"origin\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:x_cze:cisjr:40034\"\r\n    },\r\n    \"destination\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:uic:stn:5473282\"\r\n    },\r\n    \"embed\" : [\"TRIPS\"]\r\n}",
+							"raw": "{\r\n    \"departureTime\" : \"{{next_weekday}}T00:00:00\",\r\n    \"origin\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:x_cze:cisjr:40034\"\r\n    },\r\n    \"destination\" : {\r\n        \"objectType\" : \"StopPlaceRef\",\r\n        \"stopPlaceRef\" : \"urn:uic:stn:5473282\"\r\n    },\r\n    \"parameters\" : {\r\n        \"numberOfResults\" : 5\r\n    },\r\n    \"embed\" : [\"TRIPS\"]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1935,6 +1959,55 @@
 					},
 					"response": []
 				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"\r",
+							"function pad(number) {\r",
+							"    return (number < 10) ? '0' + number : number;\r",
+							"}\r",
+							"\r",
+							"function get_next_weekday (date) {\r",
+							"    var tomorrow = new Date(date.setDate(date.getDate() + 1))\r",
+							"    return tomorrow.getDay() % 6\r",
+							"        ? tomorrow\r",
+							"        : get_next_weekday(tomorrow)\r",
+							"}\r",
+							"\r",
+							"function formatOffset(date=new Date()) {\r",
+							"  var timezoneOffset=date.getTimezoneOffset();\r",
+							"  var sign=(timezoneOffset<0)?\"+\":\"-\";\r",
+							"  var minutes=Math.abs(timezoneOffset);\r",
+							"  var hours=Math.floor(minutes/60);\r",
+							"  minutes=minutes-60*hours;\r",
+							"  return sign+(\"0\"+hours).slice(-2)+\":\"+(\"0\"+minutes).slice(-2);\r",
+							"}\r",
+							"\r",
+							"var nextWeekday = get_next_weekday(new Date());\r",
+							"var nextWeekdayString = \"\" + nextWeekday.getUTCFullYear() + \"-\" + pad(nextWeekday.getUTCMonth() + 1) + \"-\" + pad(nextWeekday.getUTCDate());\r",
+							"var nextWeekdayOffset = formatOffset(nextWeekday);\r",
+							"\r",
+							"pm.globals.set(\"next_weekday\", nextWeekdayString);\r",
+							"pm.globals.set(\"next_weekday_offset\", nextWeekdayOffset);\r",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
 			]
 		}
 	],
@@ -1952,7 +2025,8 @@
 					"pm.test(\"Is 'access_token' set\", function () {\r",
 					"    pm.expect(pm.globals.has('access_token')).to.be.true;\r",
 					"    pm.expect(pm.globals.get('access_token')).to.be.string;\r",
-					"});"
+					"});\r",
+					""
 				]
 			}
 		},
